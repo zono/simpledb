@@ -35,10 +35,11 @@ public class Schema {
 
   /**
    * Add an integer field to the schema.
+   * 
    * @param fldname the name of the field
    */
   public void addIntField(String fldname) {
-    addField(fldname, INTEGER, length: 0);
+    addField(fldname, INTEGER, 0);
   }
 
   /**
@@ -74,7 +75,7 @@ public class Schema {
    * 
    * @param sch the other schema
    */
-  public void addAll(Shema sch) {
+  public void addAll(Schema sch) {
     for (String fldname : sch.fields())
       add(fldname, sch);
   }
