@@ -22,7 +22,7 @@ public class BasicQueryPlanner implements QueryPlanner {
    * the product of all tables and views; it then selects on predicate;
    * and finally it projects on the field list.
    */
-  public Plan createPlan(QueryData data, Transation tx) {
+  public Plan createPlan(QueryData data, Transaction tx) {
     // Step 1: Create a plan for each mentioned table or view.
     List<Plan> plans = new ArrayList<>();
     for (String tblname : data.tables()) {

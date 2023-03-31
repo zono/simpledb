@@ -12,7 +12,7 @@ import simpledb.file.BlockId;
  * 
  * @author Edward Sciore
  */
-public class concurrencyMgr {
+public class ConcurrencyMgr {
 
   /**
    * The global lock table. This variable is static because

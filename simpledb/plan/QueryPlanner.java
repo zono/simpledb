@@ -9,7 +9,7 @@ import simpledb.parse.QueryData;
  * 
  * @author Edward Sciore
  */
-public class QueryPlanner {
+public interface QueryPlanner {
 
   /**
    * Creates a plan for the parsed query.

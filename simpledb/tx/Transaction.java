@@ -4,7 +4,7 @@ import simpledb.file.*;
 import simpledb.log.LogMgr;
 import simpledb.buffer.*;
 import simpledb.tx.recovery.*;
-import simpledb.tx.concurrency.concurrencyMgr;
+import simpledb.tx.concurrency.ConcurrencyMgr;
 
 /**
  * Provide transaction management for clients,
@@ -16,8 +16,8 @@ import simpledb.tx.concurrency.concurrencyMgr;
 public class Transaction {
   private static int nextTxNum = 0;
   private static final int END_OF_FILE = -1;
-  private RecoverMgr recoverMgr;
-  private concurrencyMgr concurMgr;
+  private RecoveryMgr recoveryMgr;
+  private ConcurrencyMgr concurMgr;
   private BufferMgr bm;
   private FileMgr fm;
   private int txnum;
@@ -40,7 +40,7 @@ public class Transaction {
     this.bm = bm;
     txnum = nextTxNumber();
     recoveryMgr = new RecoveryMgr(this, txnum, lm, bm);
-    concurMgr = new ConcurrentMgr();
+    concurMgr = new ConcurrencyMgr();
     mybuffers = new BufferList(bm);
   }
 
@@ -65,7 +65,7 @@ public class Transaction {
    * release all locks, and unpin any pinned buffers.
    */
   public void rollback() {
-    recoveryMgr.rollabck();
+    recoveryMgr.rollback();
     System.out.println("transaction" + txnum + " rolled back");
     concurMgr.release();
     mybuffers.unpinAll();
@@ -155,7 +155,7 @@ public class Transaction {
     concurMgr.xLock(blk);
     Buffer buff = mybuffers.getBuffer(blk);
     int lsn = -1;
-    if (okToLong)
+    if (ofToLog)
       lsn = recoveryMgr.setInt(buff, offset, val);
     Page p = buff.contents();
     p.setInt(offset, val);
@@ -181,7 +181,7 @@ public class Transaction {
     Buffer buff = mybuffers.getBuffer(blk);
     int lsn = -1;
     if (okToLong)
-      lsn = recoverMgr.setString(buff, offset, val);
+      lsn = recoveryMgr.setString(buff, offset, val);
     Page p = buff.contents();
     p.setString(offset, val);
     buff.setModified(txnum, lsn);

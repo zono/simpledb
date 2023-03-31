@@ -1,7 +1,8 @@
-package simple.file;
+package simpledb.file;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class Page {
   private ByteBuffer bb;
@@ -26,15 +27,15 @@ public class Page {
   }
 
   public byte[] getBytes(int offset) {
-    bb.postition(offset);
-    int  length = bb.getInt();
+    bb.position(offset);
+    int length = bb.getInt();
     byte[] b = new byte[length];
     bb.get(b);
     return b;
   }
 
   public void setBytes(int offset, byte[] b) {
-    bb.postition(offset);
+    bb.position(offset);
     bb.putInt(b.length);
     bb.put(b);
   }
@@ -51,12 +52,12 @@ public class Page {
 
   public static int maxLength(int strlen) {
     float bytesPerChar = CHARSET.newEncoder().maxBytesPerChar();
-    return Integer.BYTES + (strlen * (int)bytesPerChar);
+    return Integer.BYTES + (strlen * (int) bytesPerChar);
   }
 
   // a package private method, needed by FileMgr
   ByteBuffer contents() {
-    bb.postition(0);
+    bb.position(0);
     return bb;
   }
 }

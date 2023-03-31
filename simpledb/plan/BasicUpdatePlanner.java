@@ -11,7 +11,7 @@ import simpledb.metadata.MetadataMgr;
  * 
  * @author sciore
  */
-public class BasicUpdatePlanner implements UpdataPlanner {
+public class BasicUpdatePlanner implements UpdatePlanner {
   private MetadataMgr mdm;
 
   public BasicUpdatePlanner(MetadataMgr mdm) {

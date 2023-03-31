@@ -9,7 +9,7 @@ import simpledb.parse.*;
  * 
  * @author Edward Sciore
  */
-public class UpdatePlanner {
+public interface UpdatePlanner {
 
   /**
    * Executes the specified insert statement, and

@@ -14,14 +14,14 @@ public class MetadataMgr {
     tblmgr = new TableMgr(isnew, tx);
     viewmgr = new ViewMgr(isnew, tblmgr, tx);
     statmgr = new StatMgr(tblmgr, tx);
-    idexmgr = new IndexMgr(isnew, tblmgr, statmgr, tx);
+    idxmgr = new IndexMgr(isnew, tblmgr, statmgr, tx);
   }
 
   public void createTable(String tblname, Schema sch, Transaction tx) {
     tblmgr.createTable(tblname, sch, tx);
   }
 
-  public Layout getLayout(String tblname, Tranaction tx) {
+  public Layout getLayout(String tblname, Transaction tx) {
     return tblmgr.getLayout(tblname, tx);
   }
 
@@ -30,7 +30,7 @@ public class MetadataMgr {
   }
 
   public String getViewDef(String viewname, Transaction tx) {
-    return viemgr.getViewDef(viewname, tx);
+    return viewmgr.getViewDef(viewname, tx);
   }
 
   public void createIndex(String idxname, String tblname, String fldname, Transaction tx) {
@@ -41,7 +41,7 @@ public class MetadataMgr {
     return idxmgr.getIndexInfo(tblname, tx);
   }
 
-  public StartInfo getStartInfo(String tblname, Layout layout, Transaction tx) {
+  public StatInfo getStatInfo(String tblname, Layout layout, Transaction tx) {
     return statmgr.getStatInfo(tblname, layout, tx);
   }
 }

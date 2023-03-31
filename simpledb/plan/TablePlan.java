@@ -23,7 +23,7 @@ public class TablePlan implements Plan {
    * @param tblname the name of the table
    * @param tx      the calling transaction
    */
-  public TrablePlan(Transactoin tx, String tblname, MetadataMgr md) {
+  public void TrablePlan(Transaction tx, String tblname, MetadataMgr md) {
     this.tblname = tblname;
     this.tx = tx;
     layout = md.getLayout(tblname, tx);

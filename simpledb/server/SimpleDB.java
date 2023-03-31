@@ -6,9 +6,11 @@ import simpledb.log.LogMgr;
 import simpledb.buffer.BufferMgr;
 import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
-import simpledb.plan.*;
-import simpledb.index.planner.IndexUpdatePlanner;
-import simpledb.opt.HeuristicQueryPlanner;
+import simpledb.plan.Planner;
+import simpledb.plan.QueryPlanner;
+import simpledb.plan.BasicQueryPlanner;
+import simpledb.plan.UpdatePlanner;
+import simpledb.plan.BasicUpdatePlanner;
 
 /**
  * THe class that configures the system.
@@ -58,7 +60,7 @@ public class SimpleDB {
     }
     mdm = new MetadataMgr(isnew, tx);
     QueryPlanner qp = new BasicQueryPlanner(mdm);
-    UpdatePlanner up = new BasicUpdataPlanner(mdm);
+    UpdatePlanner up = new BasicUpdatePlanner(mdm);
     // QueryPlanner qp = new HeuristicQueryPlanner(mdm);
     // UpdatePlanner up = new IndexUpdatePlanner(mdm);
     planner = new Planner(qp, up);

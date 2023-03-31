@@ -4,14 +4,14 @@ import java.sql.SQLException;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.plan.Planner;
-import simpledb.jdbc.ConnectionAdaptor;
+import simpledb.jdbc.ConnectionAdapter;
 
 /**
  * The embedded implementation of Connection.
  * 
  * @author Edward Sciore
  */
-public class EmbeddedConnection extends ConnectionAdaptor {
+public class EmbeddedConnection extends ConnectionAdapter {
   private SimpleDB db;
   private Transaction currentTx;
   private Planner planner;
@@ -31,7 +31,7 @@ public class EmbeddedConnection extends ConnectionAdaptor {
   /**
    * Creates new Statement for this connection.
    */
-  public EmbeddedStatement createStatement() throws SQLExeception {
+  public EmbeddedStatement createStatement() throws SQLException {
     return new EmbeddedStatement(this, planner);
   }
 

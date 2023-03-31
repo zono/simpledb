@@ -28,7 +28,7 @@ public class ViewMgr {
     ts.close();
   }
 
-  public String getVieDef(String vname, Transaction tx) {
+  public String getViewDef(String vname, Transaction tx) {
     String result = null;
     Layout layout = tblMgr.getLayout("viewcat", tx);
     TableScan ts = new TableScan(tx, "viewcat", layout);

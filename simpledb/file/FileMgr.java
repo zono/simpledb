@@ -1,13 +1,16 @@
-package simple.file;
+package simpledb.file;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FileMgr {
   private File dbDirectory;
   private int blocksize;
   private boolean isNew;
-  private Map<String,RandomAccessFile> openFiles = new HashMap<>();
+  private Map<String, RandomAccessFile> openFiles = new HashMap<>();
 
   public FileMgr(File dbDirectory, int blocksize) {
     this.dbDirectory = dbDirectory;
@@ -17,10 +20,10 @@ public class FileMgr {
     // create the directory if the database is new
     if (isNew)
       dbDirectory.mkdirs();
-    
+
     // remove any leftover temporary tables
     for (String filename : dbDirectory.list())
-      if (filename.startWith("temp"))
+      if (filename.startsWith("temp"))
         new File(dbDirectory, filename).delete();
   }
 
@@ -29,8 +32,7 @@ public class FileMgr {
       RandomAccessFile f = getFile(blk.fileName());
       f.seek(blk.number() * blocksize);
       f.getChannel().read(p.contents());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw new RuntimeException("cannot read block " + blk);
     }
   }
@@ -40,8 +42,7 @@ public class FileMgr {
       RandomAccessFile f = getFile(blk.fileName());
       f.seek(blk.number() * blocksize);
       f.getChannel().write(p.contents());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw new RuntimeException("cannot write block" + blk);
     }
   }
@@ -54,8 +55,7 @@ public class FileMgr {
       RandomAccessFile f = getFile(blk.fileName());
       f.seek(blk.number() * blocksize);
       f.write(b);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw new RuntimeException("cannot append block" + blk);
     }
     return blk;
@@ -64,9 +64,8 @@ public class FileMgr {
   public int length(String filename) {
     try {
       RandomAccessFile f = getFile(filename);
-      return (int)(f.length() / blcoksize);
-    }
-    catch (IOException e) {
+      return (int) (f.length() / blocksize);
+    } catch (IOException e) {
       throw new RuntimeException("cannot access " + filename);
     }
   }
