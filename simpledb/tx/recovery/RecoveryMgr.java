@@ -1,11 +1,17 @@
 package simpledb.tx.recovery;
 
-import java.util.*;
-import simpledb.file.*;
-import simpledb.log.*;
-import simpledb.buffer.*;
+import java.util.Iterator;
+import java.util.Collection;
+import java.util.ArrayList;
+import simpledb.file.BlockId;
+import simpledb.log.LogMgr;
+import simpledb.buffer.BufferMgr;
+import simpledb.buffer.Buffer;
 import simpledb.tx.Transaction;
-import static simpledb.tx.recovery.LogRecord.*;
+import static simpledb.tx.recovery.LogRecord.START;
+import static simpledb.tx.recovery.LogRecord.COMMIT;
+import static simpledb.tx.recovery.LogRecord.CHECKPOINT;
+import static simpledb.tx.recovery.LogRecord.ROLLBACK;
 
 /**
  * The recovery manager. Each transaction has its own recovery manager.
@@ -82,7 +88,7 @@ public class RecoveryMgr {
    * @param newval the value to be written
    */
   public int setString(Buffer buff, int offset, String newval) {
-    String oldval = buff.contents().getStringg(offset);
+    String oldval = buff.contents().getString(offset);
     BlockId blk = buff.block();
     return SetStringRecord.wirteToLog(lm, txnum, blk, offset, oldval);
   }
@@ -95,8 +101,8 @@ public class RecoveryMgr {
    * log records.
    */
   private void doRollback() {
-    Iterator<byte[]> iter = im.iterator();
-    while (iter.hasNex()) {
+    Iterator<byte[]> iter = lm.iterator();
+    while (iter.hasNext()) {
       byte[] bytes = iter.next();
       LogRecord rec = LogRecord.createLogRecord(bytes);
       if (rec.txNumber() == txnum) {
@@ -118,7 +124,7 @@ public class RecoveryMgr {
   private void doRecover() {
     Collection<Integer> finishedTxs = new ArrayList<>();
     Iterator<byte[]> iter = lm.iterator();
-    while (iter.hasNex()) {
+    while (iter.hasNext()) {
       byte[] bytes = iter.next();
       LogRecord rec = LogRecord.createLogRecord(bytes);
       if (rec.op() == CHECKPOINT)

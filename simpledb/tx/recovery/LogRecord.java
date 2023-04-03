@@ -8,7 +8,7 @@ import simpledb.tx.Transaction;
  * 
  * @author Edward Sciore
  */
-public class LogRecord {
+public interface LogRecord {
   static final int CHECKPOINT = 0, START = 1,
       COMMIT = 2, ROLLBACK = 3,
       SETINT = 4, SETSTRING = 5;

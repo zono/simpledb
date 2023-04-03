@@ -24,7 +24,7 @@ public class SetStringRecord implements LogRecord {
     blk = new BlockId(filename, blknum);
     int opos = bpos + Integer.BYTES;
     offset = p.getInt(opos);
-    int vpoos = opos + Integer.BYTES;
+    int vpos = opos + Integer.BYTES;
     val = p.getString(vpos);
   }
 
@@ -63,7 +63,7 @@ public class SetStringRecord implements LogRecord {
    * 
    * @return the LSN of the last log value
    */
-  public static int wirteToLog(LogMgr lm, int txnum, BlockId, int offset, String val) {
+  public static int wirteToLog(LogMgr lm, int txnum, BlockId blk, int offset, String val) {
     int tpos = Integer.BYTES;
     int fpos = tpos + Integer.BYTES;
     int bpos = fpos + Page.maxLength(blk.fileName().length());
@@ -76,9 +76,9 @@ public class SetStringRecord implements LogRecord {
     p.setInt(tpos, txnum);
     p.setString(fpos, blk.fileName());
     p.setInt(bpos, blk.number());
-    p.setInt(ops, offset);
+    p.setInt(opos, offset);
     p.setString(vpos, val);
     return lm.append(rec);
   }
-  
+
 }

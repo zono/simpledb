@@ -1,10 +1,11 @@
 package simpledb.tx.recovery;
 
-import simpledb.file.file.*;
+import simpledb.file.Page;
+import simpledb.file.BlockId;
 import simpledb.log.LogMgr;
 import simpledb.tx.Transaction;
 
-public class SetIntRecord {
+public class SetIntRecord implements LogRecord {
   private int txnum, offset, val;
   private BlockId blk;
 
@@ -16,14 +17,14 @@ public class SetIntRecord {
   public SetIntRecord(Page p) {
     int tpos = Integer.BYTES;
     txnum = p.getInt(tpos);
-    String filename = p.getString(fpos);
-    int bpos = fpos + Page.maxLength(filename.length());
+    String filename = p.getString(tpos);
+    int bpos = tpos + Page.maxLength(filename.length());
     int blknum = p.getInt(bpos);
     blk = new BlockId(filename, blknum);
     int opos = bpos + Integer.BYTES;
-    offset = p.getInt(ops);
+    offset = p.getInt(opos);
     int vpos = opos + Integer.BYTES;
-    val = g.getInt(vpos);
+    val = p.getInt(vpos);
   }
 
   public int op() {
@@ -69,12 +70,12 @@ public class SetIntRecord {
     int vpos = opos + Integer.BYTES;
     byte[] rec = new byte[vpos + Integer.BYTES];
     Page p = new Page(rec);
-    p.setInt(SETINT);
+    p.setInt(0, SETINT);
     p.setInt(tpos, txnum);
     p.setString(fpos, blk.fileName());
     p.setInt(bpos, blk.number());
     p.setInt(opos, offset);
-    p.setInt(vpos, val)
+    p.setInt(vpos, val);
     return lm.append(rec);
   }
 }

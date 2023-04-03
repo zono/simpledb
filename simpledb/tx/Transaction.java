@@ -1,9 +1,12 @@
 package simpledb.tx;
 
-import simpledb.file.*;
+import simpledb.file.BlockId;
+import simpledb.file.FileMgr;
+import simpledb.file.Page;
 import simpledb.log.LogMgr;
-import simpledb.buffer.*;
-import simpledb.tx.recovery.*;
+import simpledb.buffer.BufferMgr;
+import simpledb.buffer.Buffer;
+import simpledb.tx.recovery.RecoveryMgr;
 import simpledb.tx.concurrency.ConcurrencyMgr;
 
 /**
