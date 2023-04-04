@@ -1,8 +1,11 @@
 package simpledb.metadata;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import simpledb.tx.Transaction;
-import simpledb.record.*;
+import simpledb.record.Layout;
+import simpledb.record.Schema;
+import simpledb.record.TableScan;
 
 /**
  * The table manager.
@@ -55,14 +58,14 @@ public class TableMgr {
   public void createTable(String tblname, Schema sch, Transaction tx) {
     Layout layout = new Layout(sch);
     // insert one record int tblcat
-    TableScan tcat = new TableScan(tx, "tblcat", tcatlayout);
-    tcan.insert();
+    TableScan tcat = new TableScan(tx, "tblcat", tcalLayout);
+    tcat.insert();
     tcat.setString("tblname", tblname);
     tcat.setInt("slotsize", layout.slotSize());
     tcat.close();
 
     // insert a record into fldcat for each field
-    TableScan fcat = new TableScan(tx, "fldcat", fatLayout);
+    TableScan fcat = new TableScan(tx, "fldcat", fcatLayout);
     for (String fldname : sch.fields()) {
       fcat.insert();
       fcat.setString("tblname", tblname);
@@ -77,13 +80,14 @@ public class TableMgr {
   /**
    * Retrieve the layout of the specified table
    * from the catalog.
+   * 
    * @param tblname the name of the table
-   * @param tx the transaction
+   * @param tx      the transaction
    * @return the table's stored metadata
    */
   public Layout getLayout(String tblname, Transaction tx) {
     int size = -1;
-    TableScan tcat = new TableScan(tx, "tblcat", tcatlayout)
+    TableScan tcat = new TableScan(tx, "tblcat", tcalLayout);
     while (tcat.next())
       if (tcat.getString("tblname").equals(tblname)) {
         size = tcat.getInt("slotsize");
@@ -94,8 +98,8 @@ public class TableMgr {
     Schema sch = new Schema();
     Map<String, Integer> offsets = new HashMap<String, Integer>();
     TableScan fcat = new TableScan(tx, "fldcat", fcatLayout);
-    while(fcat.next())
-      if(fcat.getString("tblname").equals(tblname)) {
+    while (fcat.next())
+      if (fcat.getString("tblname").equals(tblname)) {
         String fldname = fcat.getString("fldname");
         int fldtype = fcat.getInt("type");
         int fldlen = fcat.getInt("length");

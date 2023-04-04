@@ -54,6 +54,6 @@ public class StatInfo {
    * @return a guess as to the number of distinct field values
    */
   public int distinctValues(String fldname) {
-    return 1 + (numRect / 3);
+    return 1 + (numRecs / 3);
   }
 }

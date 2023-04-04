@@ -2,7 +2,8 @@ package simpledb.metadata;
 
 import static java.sql.Types.INTEGER;
 import simpledb.tx.Transaction;
-import simpledb.record.*;
+import simpledb.record.Schema;
+import simpledb.record.Layout;
 import simpledb.index.Index;
 import simpledb.index.hash.HashIndex;
 import simpledb.index.btree.BTreeIndex; // in case we change to btree indexing
@@ -80,7 +81,7 @@ public class IndexInfo {
    * @return the estimated number of records havinf a search key
    */
   public int recordsOutpu() {
-    return si.recordsOutpu() / si.distinctValues(fldname);
+    return si.recordsOutput() / si.distinctValues(fldname);
   }
 
   /**

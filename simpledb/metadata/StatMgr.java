@@ -1,8 +1,10 @@
 package simpledb.metadata;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import simpledb.tx.Transaction;
-import simpledb.record.*;
+import simpledb.record.Layout;
+import simpledb.record.TableScan;
 
 /**
  * The statistics manager is responseible for
@@ -26,7 +28,7 @@ public class StatMgr {
    * @param tx the startup transaction
    */
   public StatMgr(TableMgr tableMgr, Transaction tx) {
-    this.tblMgr = tblMgr;
+    this.tblMgr = tableMgr;
     refreshStatistics(tx);
   }
 
@@ -53,13 +55,13 @@ public class StatMgr {
 
   private synchronized void refreshStatistics(Transaction tx) {
     tablestats = new HashMap<String, StatInfo>();
-    nummcalls = 0;
+    numcalls = 0;
     Layout tcatlayout = tblMgr.getLayout("tblcat", tx);
     TableScan tcat = new TableScan(tx, "tblcat", tcatlayout);
     while (tcat.next()) {
       String tblname = tcat.getString("tblname");
       Layout layout = tblMgr.getLayout(tblname, tx);
-      StatInfo si = calcTableStas(tblname, layout, tx);
+      StatInfo si = calcTableStats(tblname, layout, tx);
       tablestats.put(tblname, si);
     }
     tcat.close();

@@ -1,6 +1,8 @@
 package simpledb.metadata;
 
-import simpledb.record.*;
+import simpledb.record.Layout;
+import simpledb.record.Schema;
+import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 public class ViewMgr {
@@ -33,11 +35,11 @@ public class ViewMgr {
     Layout layout = tblMgr.getLayout("viewcat", tx);
     TableScan ts = new TableScan(tx, "viewcat", layout);
     while (ts.next())
-      if (tx.getString("viewname").equals(vname)) {
+      if (ts.getString("viewname").equals(vname)) {
         result = ts.getString("viewdef");
         break;
       }
     ts.close();
-    result result;
+    return result;
   }
 }

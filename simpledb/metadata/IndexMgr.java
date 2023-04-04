@@ -1,10 +1,12 @@
 package simpledb.metadata;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import static simpledb.metadata.TableMgr.MAX_NAME;
 import simpledb.tx.Transaction;
 import simpledb.record.TableScan;
-import simpledb.record.*;
+import simpledb.record.Layout;
+import simpledb.record.Schema;
 
 /**
  * The index manager.
@@ -26,7 +28,7 @@ public class IndexMgr {
    * @param tx    the system startup transaction
    */
   public IndexMgr(boolean isNew, TableMgr tblmgr, StatMgr statmgr, Transaction tx) {
-    if (isnew) {
+    if (isNew) {
       Schema sch = new Schema();
       sch.addStringField("indexname", MAX_NAME);
       sch.addStringField("tablename", MAX_NAME);
@@ -60,8 +62,9 @@ public class IndexMgr {
   /**
    * Return a map containing the index info for all indexes
    * on the specified table.
+   * 
    * @param tblname the name of the table
-   * @param tx the calling transaction
+   * @param tx      the calling transaction
    * @return a map of INdexInfo objects, keyed by their field names
    */
   public Map<String, IndexInfo> getIndexInfo(String tblname, Transaction tx) {
@@ -72,11 +75,11 @@ public class IndexMgr {
         String idxname = ts.getString("indexname");
         String fldname = ts.getString("fieldname");
         Layout tblLayout = tblmgr.getLayout(tblname, tx);
-        StatInfo sblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
-        IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(). tx, tblsi);
+        StatInfo tblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
+        IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(), tx, tblsi);
         result.put(fldname, ii);
       }
-      ts.close();
-      return result;
+    ts.close();
+    return result;
   }
 }
