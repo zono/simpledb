@@ -1,0 +1,12 @@
+@startuml
+scale 1
+class SimpleDB {
+    {static} +BLOCK_SIZE: int
+    {static} +BUFFER_SIZE: int
+    {static} +LOG_FILE: String
+    -fm: FileMgr
+    -lm: LogMgr
+    -mdm: MetadataMgr
+    -planner: Planner
+}
+@enduml
