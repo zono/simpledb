@@ -1,9 +1,12 @@
 package simpledb.record;
 
-import static java.sql.Types.*;
+import static java.sql.Types.INTEGER;
+import static java.sql.Types.VARCHAR;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The record schema of a table.

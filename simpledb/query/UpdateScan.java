@@ -7,7 +7,7 @@ import simpledb.record.RID;
  * 
  * @author Edward Sciore
  */
-public class UpdateScan {
+public interface UpdateScan {
   /**
    * Modify the field value of the current record.
    * 

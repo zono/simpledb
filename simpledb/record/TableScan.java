@@ -2,8 +2,9 @@ package simpledb.record;
 
 import static java.sql.Types.INTEGER;
 import simpledb.file.BlockId;
-import simpledb.query.*;
+import simpledb.query.Constant;
 import simpledb.tx.Transaction;
+import simpledb.query.UpdateScan;
 
 /**
  * Provides the abstraction of an arbitarily large array
@@ -55,7 +56,7 @@ public class TableScan implements UpdateScan {
 
   public Constant getVal(String fldname) {
     if (layout.schema().type(fldname) == INTEGER)
-      return new Constant(get(fldname));
+      return new Constant(getInt(fldname));
     else
       return new Constant(getString(fldname));
   }
@@ -89,7 +90,7 @@ public class TableScan implements UpdateScan {
   public void insert() {
     currentslot = rp.insertAfter(currentslot);
     while (currentslot < 0) {
-      if (atLastBlcok())
+      if (atLastBlock())
         moveToNewBlock();
       else
         moveToBlock(rp.block().number() + 1);

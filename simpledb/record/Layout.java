@@ -1,7 +1,8 @@
 package simpledb.record;
 
-import java.util.*;
-import static java.sql.Type.*;
+import java.util.HashMap;
+import java.util.Map;
+import static java.sql.Types.INTEGER;
 import simpledb.file.Page;
 
 /**
@@ -30,8 +31,8 @@ public class Layout {
     offsets = new HashMap<>();
     int pos = Integer.BYTES; // leave space for the empty/inuse flag
     for (String fldname : schema.fields()) {
-      offset.put(fldname, pos);
-      pos += lengthInGBytes(fldname);
+      offsets.put(fldname, pos);
+      pos += lengthInBytes(fldname);
     }
     slotsize = pos;
   }

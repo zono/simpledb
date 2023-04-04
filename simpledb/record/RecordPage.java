@@ -1,7 +1,7 @@
 package simpledb.record;
 
 import static java.sql.Types.INTEGER;
-import simpledb.file.*;
+import simpledb.file.BlockId;
 import simpledb.tx.Transaction;
 
 /**
@@ -92,6 +92,7 @@ public class RecordPage {
       }
       slot++;
     }
+  }
 
   public int nextAfter(int slot) {
     return searchAfter(slot, USED);
