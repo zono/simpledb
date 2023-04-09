@@ -1,6 +1,6 @@
 package simpledb.index.btree;
 
-import simopledb.query.Constant;
+import simpledb.query.Constant;
 
 /**
  * A directory entry has two components: the number of the child block,

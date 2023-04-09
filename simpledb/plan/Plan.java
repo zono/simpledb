@@ -9,7 +9,7 @@ import simpledb.record.*;
  * 
  * @author Edward Sciore
  */
-public class Plan {
+public interface Plan {
 
   /**
    * Open a scan corresponding to this plan.

@@ -1,6 +1,6 @@
 package simpledb.materialize;
 
-import java.util.*;
+import java.util.Comparator;
 
 import simpledb.query.*;
 

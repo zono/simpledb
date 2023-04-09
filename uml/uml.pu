@@ -1,12 +1,837 @@
 @startuml
-scale 1
-class SimpleDB {
-    {static} +BLOCK_SIZE: int
-    {static} +BUFFER_SIZE: int
-    {static} +LOG_FILE: String
-    -fm: FileMgr
-    -lm: LogMgr
-    -mdm: MetadataMgr
-    -planner: Planner
+scale 0.5
+package java {
+  package java.util {
+    interface Iterator {
+    }
+    interface Comparator {
+    }
+  }
+  package java.sql {
+    interface Driver {
+    }
+    interface Connection {
+    }
+    interface ResultSet {
+    }
+    interface ResultSetMetaData {
+    }
+    interface Statement {
+    }
+  }
+  package java.rmi {
+    interface Remote {
+    }
+    package java.rmi.server {
+      interface UnicastRemoteObject {
+      }
+    }
+  }
+}
+package simpleclient {
+  package simpleclient.embedded {
+    class CreateStudentDB {
+      {static} +main(): void
+    }
+    CreateStudentDB *-- EmbeddedDriver
+  }
+}
+package simpledb {
+  package simpledb.server {
+    class SimpleDB {
+        {static} +BLOCK_SIZE: int
+        {static} +BUFFER_SIZE: int
+        {static} +LOG_FILE: String
+        -fm: FileMgr
+        -lm: LogMgr
+        -mdm: MetadataMgr
+        -planner: Planner
+    }
+    SimpleDB *-- FileMgr
+    SimpleDB *-- LogMgr
+  }
+  package simpledb.file {
+    class Page {
+        -bb: ByteBuffer
+        {static} +CHARSET: Charset
+    }
+    class FileMgr {
+        -dbDirectory: File
+        -blocksize: int
+        -isNew: boolean
+        -openFiles: Map<String, RandomAccessFile>
+    }
+    class BlockId {
+        -filename: String
+        -blknum: int
+    }
+  }
+  package simpledb.buffer {
+    class Buffer {
+      -fm: FileMgr
+      -lm: LogMgr
+      -contents: Page
+      -blk: BlockId
+      -pins: int
+      -txnum: int
+      -pins: int
+      -lsn: int
+    }
+    Buffer *-- FileMgr
+    Buffer *-- LogMgr
+    Buffer *-- Page
+    Buffer *-- BlockId
+    class BufferAbortException {
+    }
+    class BufferMgr {
+      -bufferpool: Buffer[]
+      -numAvailable: int
+      {static} -MAX_TIME: long
+    }
+  }
+  package simpledb.log {
+    class LogMgr {
+      -fm: FileMgr
+      -logfile: String
+      -logpage: Page
+      -currentblk: BlockId
+      -latestLSN: int
+      -lastSavedLSN: int
+    }
+    LogMgr *-- FileMgr
+    LogMgr *-- Page
+    LogMgr *-- BlockId
+    class LogIterator implements Iterator {
+      -fm: FileMgr
+      -blk: BlockId
+      -p: Page
+      -currentpos: int
+      -boundary: int
+    }
+     LogIterator *-- FileMgr
+     LogIterator *-- BlockId
+     LogIterator *-- Page
+  }
+  package simpledb.tx {
+    class Transaction {
+      {static} -nextTxNum: int
+      {static} -END_OF_FILE: int
+      -recoveryMgr: RecoveryMgr
+      -concurMgr: ConcurrencyMgr
+      -bm: BufferMgr
+      -fm: FileMgr
+      -txnum: int
+      -mybuffers: BufferList
+    }
+    Transaction *-- RecoveryMgr
+    Transaction *-- ConcurrencyMgr
+    Transaction *-- BufferMgr
+    Transaction *-- FileMgr
+    class BufferList {
+      -buffers: Map<BlockId, Buffer>
+      -pins: List<BlockId>
+      -bm: BufferMgr
+    }
+    BufferList *-- BufferMgr
+    package simpledb.tx.concurrency {
+      class ConcurrencyMgr {
+        {static} -locktbl: LockTable
+        -locks: Map<BlockId, Integer>
+      }
+      ConcurrencyMgr *-- LockTable
+      class LockAbortException {
+      }
+      class LockTable {
+        {static} -MAX_TIME: long
+        -locks: Map<BlockId, Integer>
+      }
+    }
+    package simpledb.tx.recovery {
+      class CheckpointRecord implements LogRecord {
+      }
+      class CommitRecord implements LogRecord {
+        -txnum: int
+      }
+      interface LogRecord {
+        {static} CHECKPOINT: int
+        {static} START: int
+        {static} COMMIT: int
+        {static} ROLLBACK: int
+        {static} SETINT: int
+        {static} SETSTRING: int
+        op(): int
+        txNumber(): int
+        undo(Transaction): void
+        {static} createLogRecord(byte[]): LogRecord
+      }
+      class RecoveryMgr {
+        -lm: LogMgr
+        -bm: BufferMgr
+        -tx: Transaction
+        -txnum: int
+      }
+      RecoveryMgr *-- LogMgr
+      RecoveryMgr *-- BufferMgr
+      RecoveryMgr *-- Transaction
+      class RollbackRecord implements LogRecord {
+        -txnum: int
+      }
+      class SetIntRecord implements LogRecord {
+        -txnum: int
+        -offset: int
+        -val: int
+        -blk: BlockId
+      }
+      SetIntRecord *-- BlockId
+      class SetStringRecord implements LogRecord {
+        -txnum: int
+        -offset: int
+        -val: String
+        -blk: BlockId
+      }
+      SetStringRecord *-- BlockId
+      class StartRecord implements LogRecord {
+        -txnum: int
+      }
+    }
+  }
+  package simpledb.record {
+    class Layout {
+      -schema: Schema
+      -offsets: Map<String, Integer>
+      -slotsize: int
+    }
+    Layout *-- Schema
+    class RecordPage {
+      {static} +EMPTY: int
+      {static} +USED: int
+      -tx: Transaction
+      -blk: BlockId
+      -layout: Layout
+    }
+    RecordPage *-- Layout
+    RecordPage *-- BlockId
+    class RID {
+      -blknum: int
+      -slot: int
+    }
+    class Schema {
+      -fields: List<String>
+      -info: Map<String, FieldInfo>
+    }
+    Schema *-- FieldInfo
+    class TableScan implements UpdateScan {
+      -tx: Transaction
+      -layout: Layout
+      -rp: RecordPage
+      -filename: String
+      -recoveryMgr: int
+      -currentslot: RecoveryMgr
+    }
+  }
+  package simpledb.metadata {
+    class IndexInfo {
+      -idxname: String
+      -fldname: String
+      -tx: Transaction
+      -tblSchema: Schema
+      -idxLayout: Layout
+      -si: StatInfo
+    }
+    IndexInfo *-- Schema
+    IndexInfo *-- Layout
+    IndexInfo *-- StatInfo
+    class IndexMgr {
+      -layout: Layout
+      -tblmgr: TableMgr
+      -statmgr: StatMgr
+    }
+    IndexMgr *-- Layout
+    IndexMgr *-- TableMgr
+    IndexMgr *-- StatMgr
+    class MetadataMgr {
+      {static} -tblmgr: Layout
+      {static} -viewmgr: ViewMgr
+      {static} -statmgr: StatMgr
+      {static} -idxmgr: IndexMgr
+    }
+    MetadataMgr *-- Layout
+    MetadataMgr *-- ViewMgr
+    MetadataMgr *-- StatMgr
+    MetadataMgr *-- IndexMgr
+    class StatInfo {
+      -numBlocks: int
+      -numRecs: int
+    }
+    class StatMgr {
+      -tblMgr: TableMgr
+      -tablestats: Map<String, StatInfo>
+      -numcalls: int
+    }
+    StatMgr *-- TableMgr
+    StatMgr *-- StatInfo
+    class TableMgr {
+      {static} -MAX_NAME: int
+      -tcalLayout: Layout
+      -fcatLayout: Layout
+    }
+    TableMgr *-- Layout
+    class ViewMgr {
+      {static} -MAX_VIEWDEF: int
+      -tblMgr: TableMgr
+    }
+    ViewMgr *-- TableMgr
+  }
+  package simpledb.query {
+    interface Scan {
+      +beforeFirst(): void
+      +next(): boolean
+      +getInt(String): int
+      +getString(String): String
+      +getVal(String): Constant
+      +hasField(String): boolean
+      +close(): void
+    }
+    interface UpdateScan {
+      +setVal(String, Constant): void
+      +setInt(String, int): void
+      +setString(String, String): void
+      +insert(): void
+      +delete(): void
+      +getRid(): RID
+      +moveToRid(RID): void
+    }
+    class Constant {
+      -ival: Integer
+      -sval: String
+    }
+    class Expression {
+      -val: Constant
+      -fldname: String
+    }
+    Expression *-- Constant
+    class Predicate {
+      -terms: List<Term>
+    }
+    Predicate *-- Term
+    class ProductScan implements Scan {
+      -s1: Scan
+      -s2: Scan
+    }
+    class ProjectScan implements Scan {
+      -s: Scan
+      -fieldlist: List<String>
+    }
+    class Term {
+      -lhs: Expression
+      -rhs: Expression
+    }
+    Term *-- Expression
+  }
+  package simpledb.parse {
+    class BadSyntaxException {
+    }
+    class CreateIndexData {
+      -idxname: String
+      -tblname: String
+      -fldname: String
+    }
+    class CreateTableData {
+      -tblname: String
+      -sch: Schema
+    }
+    CreateTableData *-- Schema
+    class CreateViewData {
+      -viewname: String
+      -qrydata: QueryData
+    }
+    CreateViewData *-- QueryData
+    class DeleteData {
+      -tblname: String
+      -viewname: Predicate
+    }
+    DeleteData *-- Predicate
+    class InsertData {
+      -tblname: String
+      -flds: List<String>
+      -vals: List<Constant>
+    }
+    InsertData *-- Constant
+    class Lexer {
+      -keywords: Collection<String>
+      -tok: StreamTokenizer
+    }
+    Lexer *-- StreamTokenizer
+    class ModifyData {
+      -tblname: String
+      -fldname: String
+      -newval: Expression
+      -pred: Predicate
+    }
+    ModifyData *-- Expression
+    ModifyData *-- Predicate
+    class Parser {
+      -lex: Lexer
+    }
+    Parser *-- Lexer
+    class PredParser {
+      -lex: Lexer
+    }
+    PredParser *-- Lexer
+    class QueryData {
+      -fields: List<String>
+      -tables: Collection<String>
+      -pred: Predicate
+    }
+    QueryData *-- Predicate
+  }
+  package simpledb.plan {
+    class BasicQueryPlanner implements QueryPlanner {
+      -mdm: MetadataMgr
+    }
+    BasicQueryPlanner *-- MetadataMgr
+    class BasicUpdatePlanner implements UpdatePlanner {
+      -mdm: MetadataMgr
+    }
+    BasicUpdatePlanner *-- MetadataMgr
+    class BetterQueryPlanner implements QueryPlanner {
+      -mdm: MetadataMgr
+    }
+    BetterQueryPlanner *-- MetadataMgr
+    class OptimizedProductPlan implements Plan {
+      -bestplan: Plan
+    }
+    OptimizedProductPlan *-- Plan
+    interface Plan {
+      +open(): Scan
+      +blocksAccessed(): int
+      +recordsOutput(): int
+      +distinctValues(String fldname): int
+      +schema(): Schema
+    }
+    class Planner {
+      -qplanner: QueryPlanner
+      -uplanner: UpdatePlanner
+    }
+    Planner *-- QueryPlanner
+    Planner *-- UpdatePlanner
+    class ProductPlan {
+      -p1: Plan
+      -p2: Plan
+      -schema: Schema
+    }
+    ProductPlan *-- Plan
+    ProductPlan *-- Plan
+    ProductPlan *-- Schema
+    class ProjectPlan implements Plan {
+      -p: Plan
+      -schema: Schema
+    }
+    ProjectPlan *-- Plan
+    ProjectPlan *-- Schema
+    interface QueryPlanner {
+      -createPlan(QueryData data, Transaction tx): Plan
+    }
+    class SelectPlan implements Plan {
+      -p: Plan
+      -pred: Predicate
+    }
+    SelectPlan *-- Plan
+    SelectPlan *-- Predicate
+    class TablePlan implements Plan {
+      -tblname: String
+      -tx: Transaction
+      -layout: Layout
+      -si: StatInfo
+    }
+    TablePlan *-- Transaction
+    TablePlan *-- Layout
+    TablePlan *-- StatInfo
+    interface UpdatePlanner {
+      -executeInsert(InsertData data, Transaction tx): int
+      -executeDelete(DeleteData data, Transaction tx): int
+      -executeModify(ModifyData data, Transaction tx): int
+      -executeCreateTable(CreateTableData data, Transaction tx): int
+      -executeCreateView(CreateViewData data, Transaction tx): int
+      -executeCreateIndex(CreateIndexData data, Transaction tx): int
+    }
+  }
+  package simpledb.jdbc {
+    package simpledb.jdbc.embedded {
+      class EmbeddedConnection extends ConnectionAdapter {
+        -db: SimpleDB
+        -currentTx: Transaction
+        -planner: Planner
+      }
+      EmbeddedConnection *-- SimpleDB
+      EmbeddedConnection *-- Transaction
+      EmbeddedConnection *-- Planner
+      class EmbeddedDriver extends DriverAdapter{
+      }
+      EmbeddedDriver *-- EmbeddedConnection
+      class DriverAdapter implements Driver {
+      }
+      class EmbeddedMetaData extends ResultSetMetaDataAdapter {
+        -dbsch: Schema
+      }
+      EmbeddedMetaData *-- Schema
+      class EmbeddedResultSet extends ResultSetAdapter {
+        -s: Scan
+        -sch: Schema
+        -conn: EmbeddedConnection
+      }
+      EmbeddedResultSet *-- Scan
+      EmbeddedResultSet *-- Schema
+      EmbeddedResultSet *-- EmbeddedConnection
+      class EmbeddedStatement extends StatementAdapter {
+        -conn: EmbeddedConnection
+        -planner: Planner
+      }
+      EmbeddedStatement *-- EmbeddedConnection
+      EmbeddedStatement *-- Planner
+      abstract class ConnectionAdapter implements Connection {
+      }
+      abstract class DriverAdapter implements Driver {
+      }
+      abstract class ResultSetAdapter implements ResultSet {
+      }
+      abstract class ResultSetMetaDataAdapter implements ResultSetMetaData {
+      }
+      abstract class StatementAdapter implements Statement {
+      }
+    }
+    package simpledb.jdbc.network {
+      class NetworkConnection extends ConnectionAdaptor {
+        -rconn: RemoteConnection
+      }
+      NetworkConnection *-- RemoteConnection
+      class NetworkDriver extends DriverAdapter {
+      }
+      class NetworkMetaData extends ResultSetMetaAdapter {
+        -rmd: RemoteMetaData
+      }
+      NetworkMetaData *-- RemoteMetaData
+      class NetworkResultSet extends ResultSetAdapter {
+        -rrs: RemoteResultSet
+      }
+      NetworkResultSet *-- RemoteResultSet
+      class NetworkStatement extends StatementAdapter {
+        -rstmt: RemoteStatement
+      }
+      NetworkStatement *-- RemoteStatement
+      interface RemoteConnection extends Remote {
+        +createStatement(): RemoteStatement
+        +close(): void
+      }
+      class RemoteConnectionImpl extends UnicastRemoteObject implements RemoteConnection {
+        -db: SimpleDB
+        -currentTx: Transaction
+        -planner: Planner
+      }
+      RemoteConnectionImpl *-- SimpleDB
+      RemoteConnectionImpl *-- Transaction
+      RemoteConnectionImpl *-- Planner
+      interface RemoteDriver extends Remote {
+        +connect(): RemoteConnection
+      }
+      class RemoteDriverImpl extends UniacastRemoteObject implements RemoteDriver {
+        -db: SimpleDB
+      }
+      RemoteDriverImpl *-- SimpleDB
+      interface RemoteMetaData extends Remote {
+        +getColumnCount(): int
+        +getColumnName(int column): String
+        +getColumnType(int column): int
+        +getColumnDisplaySize(int column): int
+      }
+      class RemoteMetaDataImpl extends UnicastRemoteObject implements RemoteMetaData {
+        -sch: Schema
+        -fields: List<String>
+      }
+      RemoteMetaDataImpl *-- Schema
+      interface RemoteResultSet extends Remote {
+        +next(): boolean
+        +getInt(String fldname): int
+        +getString(String fldname): String
+        +getMetaData(): RemoteMetaData
+        +close(): void
+      }
+      class RemoteResultSetImpl extends UnicastRemoteObject implements RemoteResultSet {
+        -s: Scan
+        -sch: Schema
+        -rconn: RemoteConnectionImpl
+      }
+      RemoteResultSetImpl *-- Scan
+      RemoteResultSetImpl *-- Schema
+      RemoteResultSetImpl *-- RemoteConnectionImpl
+      interface RemoteStatement extends Remote {
+        +executeQuery(String qry): RemoteResultSet
+        +executeUpdate(String cmd): int
+        +close(): void
+      }
+      class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement {
+        -rconn: RemoteConnectionImpl
+        -planner: Planner
+      }
+      RemoteStatementImpl *-- RemoteConnectionImpl
+      RemoteStatementImpl *-- Planner
+    }
+  }
+  package simpledb.index {
+    interface Index {
+      +beforeFirst(Constant searchkey): void
+      +next(): boolean
+      +getDataRid(): RID
+      +insert(Constant dataval, RID datarid): void
+      +delete(Constant dataval, RID datarid): void
+      +close(): void
+    }
+    package simpledb.btree {
+      class BTPage {
+        -tx: Transaction
+        -currentblk: BlockId
+        -layout: Layout
+      }
+      BTPage *-- Transaction
+      BTPage *-- BlockId
+      BTPage *-- Layout
+      class BTreeDir {
+        -tx: Transaction
+        -layout: Layout
+        -contents: BTPage
+        -filename: String
+      }
+      BTreeDir *-- Transaction
+      BTreeDir *-- Layout
+      BTreeDir *-- BTPage
+      class BTreeIndex implements Index {
+        -tx: Transaction
+        -dirLayout: Layout
+        -leafLayout: Layout
+        -leaftbl: String
+        -leaf: BTreeLeaf
+        -rootblk: BlockId
+      }
+      BTreeIndex *-- Transaction
+      BTreeIndex *-- Layout
+      BTreeIndex *-- Layout
+      BTreeIndex *-- BTreeLeaf
+      BTreeIndex *-- BlockId
+      class BTreeLeaf {
+        -tx: Transaction
+        -layout: Layout
+        -searchkey: Constant
+        -contents: BTPage
+        -currentslot: int
+        -filename: String
+      }
+      BTreeLeaf *-- Transaction
+      BTreeLeaf *-- Layout
+      BTreeLeaf *-- Constant
+      BTreeLeaf *-- BTPage
+      class DirEntry {
+        -dataval: Constant
+        -blocknum: int
+      }
+      DirEntry *-- Constant
+    }
+    package simpledb.hash {
+      class HashIndex implements Index {
+        +NUM_BUCKETS: int
+        -tx: Transaction
+        -idxname: String
+        -layout: Layout
+        -seachkey: Constant
+        -ts: TableScan
+      }
+    }
+    package simpledb.planner {
+      class IndexJoinPlan implements Plan {
+        -p1: Plan
+        -p2: Plan
+        -ii: IndexInfo
+        -joinfield: String
+        -sch: Schema
+      }
+      IndexJoinPlan *-- Plan
+      IndexJoinPlan *-- Plan
+      IndexJoinPlan *-- IndexInfo
+      IndexJoinPlan *-- Schema  
+      class IndexSelectPlan implements Plan {
+        -p: Plan
+        -ii: IndexInfo
+        -val: Constant
+      }
+      IndexSelectPlan *-- Plan
+      IndexSelectPlan *-- IndexInfo
+      IndexSelectPlan *-- Constant
+      class IndexUpdatePlanner implements UpdataPlanner {
+        -mdm: MetadataMgr
+      }
+      IndexUpdatePlanner *-- MetadataMgr
+    }
+  }
+  package simpledb.materialize {
+    interface AggregationFn {
+      -processFirst(Scan s): void
+      -processNext(Scan s): void
+      -fieldName(): String
+      -value(): Constant
+    }
+    class CountFn implements AggregationFn {
+      -fldname: String
+      -count: int
+    }
+    class GroupByPlan implements Plan {
+      -p: Plan
+      -groupfields: List<String>
+      -aggfns: List<AggregationFn>
+      -sch: Schema
+    }
+    GroupByPlan *-- Plan
+    GroupByPlan *-- AggregationFn
+    GroupByPlan *-- Schema
+    class GroupByScan implements Scan {
+      -s: Scan
+      -groupfields: List<String>
+      -aggfns: List<AggregationFn>
+      -groupval: GroupValue
+      -moregroups: boolean
+    }
+    GroupByScan *-- Scan
+    GroupByScan *-- AggregationFn
+    GroupByScan *-- GroupValue
+    class GroupValue {
+      -vals: Map<String, Constant>
+    }
+    GroupValue *-- Constant
+    class MaterializePlan implements Plan {
+      -srcplan: Plan
+      -tx: Transaction
+    }
+    MaterializePlan *-- Plan
+    MaterializePlan *-- Transaction
+    class MaxFn implements AggregationFn {
+      -fldname: String
+      -val: Constant
+    }
+    MaxFn *-- Constant
+    class MergeJoinPlan implements Plan {
+      -p1: Plan
+      -p2: Plan
+      -fldname1: String
+      -fldname2: String
+      -sch: Schema
+    }
+    MergeJoinPlan *-- Plan
+    MergeJoinPlan *-- Plan
+    MergeJoinPlan *-- Schema
+    class MergeJoinScan implements Scan {
+      -s1: Scan
+      -s2: SortScan
+      -fldname1: String
+      -fldname2: String
+      -joinval: Constant
+    }
+    MergeJoinScan *-- Scan
+    MergeJoinScan *-- SortScan
+    MergeJoinScan *-- Constant
+    class RecordComparator implements Comparator {
+      -fields: List<String>
+    }
+    class SortPlan implements Plan {
+      -tx: Transaction
+      -p: Plan
+      -sch: Schema
+      -comp: RecordComparator
+    }
+    SortPlan *-- Transaction
+    SortPlan *-- Plan
+    SortPlan *-- Schema
+    SortPlan *-- RecordComparator
+    class SortScan implements Scan {
+      -s1: UpdateScan
+      -s2: UpdateScan
+      -comp: RecordComparator
+      -hasmore1: boolean
+      -hasmore2: boolean
+      -saveposition: List<RID>
+    }
+    SortScan *-- UpdateScan
+    SortScan *-- UpdateScan
+    SortScan *-- RecordComparator
+    SortScan *-- RID
+    class TempTable {
+      {static} -nextTableNum: int
+      -tx: Transaction
+      -tblname: String
+      -layout: Layout
+    }
+    TempTable *-- Transaction
+    TempTable *-- Layout
+  }
+  package simpledb.multibuffer {
+    class BufferNeeds {
+    }
+    class ChunkScan implements Scan {
+      -buffs: List<RecordPage>
+      -tx: Transaction
+      -filename: String
+      -layout: Layout
+      -startbum: int
+      -endbnum: int
+      -currentbnum: int
+      -rp: RecordPage
+      -currentslot: int
+    }
+    ChunkScan *-- RecordPage
+    ChunkScan *-- Transaction
+    ChunkScan *-- Layout
+    ChunkScan *-- RecordPage
+    class MultibufferProductPlan implements Plan {
+      -tx: Transaction
+      -lhs: Plan
+      -rhs: Plan
+      -schema: Schema
+    }
+    MultibufferProductPlan *-- Transaction
+    MultibufferProductPlan *-- Plan
+    MultibufferProductPlan *-- Plan
+    MultibufferProductPlan *-- Schema
+    class MultibufferProductScan implements Scan {
+      -tx: Transaction
+      -lhsscan: Scan
+      -rhsscan: Scan
+      -filename: String
+      -layout: Layout
+      -int: chunksize
+      -int: nextblknum
+      -int: filesize
+    }
+    MultibufferProductScan *-- Transaction
+    MultibufferProductScan *-- Scan
+    MultibufferProductScan *-- Scan
+    MultibufferProductScan *-- Layout
+  }
+  package simpledb.opt {
+    class HeuristicQueryPlanner implements QueryPlanner {
+      -tableplanners: Collection<TablePlanner>
+      -mdm: MetadataMgr
+    }
+    HeuristicQueryPlanner *-- TablePlanner
+    HeuristicQueryPlanner *-- MetadataMgr
+    class TablePlanner {
+      -myplan: TablePlan
+      -mypred: Predicate
+      -myschema: Schema
+      -indexes: Map<String, IndexInfo>
+      -tx: Transaction
+    }
+    TablePlanner *-- TablePlan
+    TablePlanner *-- Predicate
+    TablePlanner *-- Schema
+    TablePlanner *-- IndexInfo
+    TablePlanner *-- Transaction
+  }
 }
 @enduml

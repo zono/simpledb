@@ -1,7 +1,11 @@
 package simpledb.jdbc;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.SQLException;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
@@ -38,6 +42,6 @@ public abstract class DriverAdapter implements Driver {
   }
 
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-    throw new SQLFeatureNotSupportedException("operation not implemented")
+    throw new SQLFeatureNotSupportedException("operation not implemented");
   }
 }
